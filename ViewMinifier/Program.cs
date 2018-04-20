@@ -4,32 +4,22 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace HtmlMinifier
-{
+namespace HtmlMinifier {
     /// <summary>
     /// The html minification class.
     /// </summary>
-    public class Program
-    {
+    public class Program {
 
-        static void Main(string[] args)
-        {
-            if (args.Length == 0)
-            {
+        static void Main(string[] args) {
+            if (args.Length == 0) {
                 Console.WriteLine("Please provide folder path or file(s) to process");
-            }
-            else
-            {
+            } else {
                 // Determine which features to enable or disable
                 var features = new Features(args);
-                foreach (var arg in args)
-                {
-                    if (Directory.Exists(arg))
-                    {
+                foreach (var arg in args) {
+                    if (Directory.Exists(arg)) {
                         ProcessDirectory(features, arg);
-                    }
-                    else if (File.Exists(arg))
-                    {
+                    } else if (File.Exists(arg)) {
                         ProcessFile(features, arg);
                     }
                 }
@@ -38,18 +28,14 @@ namespace HtmlMinifier
         }
 
         /// <summary>
-        /// Minify all files in a given file
+        /// Minify all files in a given directory
         /// </summary>
         /// <param name="features">Features object</param>
         /// <param name="folderPath">The path to the folder</param>
-        public static void ProcessDirectory(Features features, string folderPath)
-        {
+        public static void ProcessDirectory(Features features, string folderPath) {
             // Loop through the files in the folder and look for any of the following extensions
-            foreach (string folder in GetDirectories(folderPath))
-            {
-                string[] filePaths = Directory.GetFiles(folder);
-                foreach (var filePath in filePaths)
-                {
+            foreach (string folder in GetDirectories(folderPath)) {
+                foreach (var filePath in Directory.GetFiles(folder)) {
                     if (filePath.IsHtmlFile())
                         ProcessFile(features, filePath);
                 }
@@ -61,8 +47,7 @@ namespace HtmlMinifier
         /// </summary>
         /// <param name="features">Features object</param>
         /// <param name="filePath">The path to the file</param>
-        public static void ProcessFile(Features features, string filePath)
-        {
+        public static void ProcessFile(Features features, string filePath) {
             Console.WriteLine("Beginning Minification");
 
             // Minify contents
@@ -78,18 +63,8 @@ namespace HtmlMinifier
         /// </summary>
         /// <param name="path">The path</param>
         /// <returns>A list of the directories.</returns>
-        public static IEnumerable<string> GetDirectories(string path)
-        {
-            // Get all subdirectories
-            IEnumerable<string> directories = from subdirectory in Directory.GetDirectories(path, "*", SearchOption.AllDirectories) select subdirectory;
-
-            // Add the subdirectories
-            IList<string> allDirectories = directories as IList<string> ?? directories.ToList();
-
-            // Add the root folder
-            allDirectories.Add(path);
-
-            return allDirectories;
+        public static IEnumerable<string> GetDirectories(string path) {
+            return new[] { path }.Concat(Directory.GetDirectories(path, "*", SearchOption.AllDirectories));
         }
 
         /// <summary>
@@ -99,12 +74,11 @@ namespace HtmlMinifier
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public static string MinifyHtml(string filePath, Features features)
-        {
-            using (var reader = new StreamReader(filePath))
-            {
+        public static string MinifyHtml(string filePath, Features features) {
+            using (var reader = new StreamReader(filePath)) {
                 return reader.MinifyHtmlCode(features);
             }
         }
+
     }
 }
