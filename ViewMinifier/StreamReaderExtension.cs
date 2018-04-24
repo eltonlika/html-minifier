@@ -1,21 +1,18 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace HtmlMinifier
-{
-    public static class StreamReaderExtension
-    {
+namespace HtmlMinifier {
+    public static class StreamReaderExtension {
         /// <summary>
         /// Minify the HTML code
         /// </summary>
         /// <param name="reader">The StreamReader.</param>
         /// <param name="features">Any features to enable / disable.</param>
         /// <returns>The minified HTML code.</returns>
-        public static string MinifyHtmlCode(this StreamReader reader, Features features)
-        {
+        public static string MinifyHtmlCode(this StreamReader reader, Features features) {
             return MinifyHtmlCode(reader.ReadToEnd(), features);
         }
 
@@ -25,8 +22,7 @@ namespace HtmlMinifier
         /// <param name="htmlCode">The HTML as a string</param>
         /// <param name="features">Any features to enable / disable.</param>
         /// <returns>The minified HTML code.</returns>
-        public static string MinifyHtmlCode(string htmlCode, Features features)
-        {
+        public static string MinifyHtmlCode(string htmlCode, Features features) {
             string contents;
 
             // Minify the contents
@@ -49,8 +45,7 @@ namespace HtmlMinifier
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public static string ReArrangeDeclarations(string fileContents)
-        {
+        public static string ReArrangeDeclarations(string fileContents) {
             // A list of all the declarations
             Dictionary<string, bool> declarations = new Dictionary<string, bool>();
             declarations.Add("@model ", true);
@@ -58,8 +53,7 @@ namespace HtmlMinifier
             declarations.Add("@inherits ", false);
 
             // Loop through the declarations
-            foreach (var declaration in declarations)
-            {
+            foreach (var declaration in declarations) {
                 fileContents = ReArrangeDeclaration(fileContents, declaration.Key, declaration.Value);
             }
 
@@ -76,27 +70,23 @@ namespace HtmlMinifier
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        private static string ReArrangeDeclaration(string fileContents, string declaration, bool bringToTop)
-        {
+        private static string ReArrangeDeclaration(string fileContents, string declaration, bool bringToTop) {
             // Find possible multiple occurences in the file contents
             MatchCollection matches = Regex.Matches(fileContents, declaration);
 
             // Loop through the matches
             int alreadyMatched = 0;
-            foreach (Match match in matches)
-            {
+            foreach (Match match in matches) {
                 int position = declaration.Length;
                 int declarationPosition = match.Index;
 
                 // If we have more than one match, we need to keep the counter moving everytime we add a new line
-                if (matches.Count > 1 && alreadyMatched > 0)
-                {
+                if (matches.Count > 1 && alreadyMatched > 0) {
                     // Cos we added one or more new line break \n\r
                     declarationPosition += (2 * alreadyMatched);
                 }
 
-                while (declarationPosition >= 0)
-                {
+                while (declarationPosition >= 0) {
                     // Move one forward
                     position += 1;
                     if (position > fileContents.Length) break;
@@ -104,19 +94,15 @@ namespace HtmlMinifier
 
                     // Check if it contains a whitespace at the end
                     if (!substring.EndsWith(", ") && (substring.EndsWith(" ")
-                        || substring.EndsWith(">") && fileContents.Substring(declarationPosition + position - 1, 2) != ">>"))
-                    {
-                        if (bringToTop)
-                        {
+                        || substring.EndsWith(">") && fileContents.Substring(declarationPosition + position - 1, 2) != ">>")) {
+                        if (bringToTop) {
                             // First replace the occurence
                             fileContents = fileContents.Replace(substring, "");
 
                             // Next move it to the top on its own line
                             fileContents = substring + Environment.NewLine + fileContents;
                             break;
-                        }
-                        else
-                        {
+                        } else {
                             // Add a line break afterwards
                             fileContents = fileContents.Replace(substring, substring + Environment.NewLine);
                             alreadyMatched++;
@@ -137,11 +123,9 @@ namespace HtmlMinifier
         /// <returns>
         /// The <see cref="string"/>.
         /// </returns>
-        public static string MinifyHtml(string htmlContents, Features features)
-        {
+        public static string MinifyHtml(string htmlContents, Features features) {
             // First, remove all JavaScript comments
-            if (!features.IgnoreJsComments)
-            {
+            if (!features.IgnoreJsComments) {
                 htmlContents = RemoveJavaScriptComments(htmlContents);
             }
 
@@ -168,24 +152,19 @@ namespace HtmlMinifier
 
             // Replace spaces between brackets
             htmlContents = Regex.Replace(htmlContents, @"\s*\>\s*\<\s*", "><");
-            
+
             // Replace comments
-            if (!features.IgnoreHtmlComments)
-            {
-                if (features.IgnoreKnockoutComments)
-                {
+            if (!features.IgnoreHtmlComments) {
+                if (features.IgnoreKnockoutComments) {
                     htmlContents = Regex.Replace(htmlContents, @"<!--(?!(\[|\s*#include))(?!ko .*)(?!\/ko)(.*?)-->", "");
-                }
-                else
-                {
+                } else {
                     htmlContents = Regex.Replace(htmlContents, @"<!--(?!(\[|\s*#include))(.*?)-->", "");
                 }
             }
 
             // single-line doctype must be preserved
             var firstEndBracketPosition = htmlContents.IndexOf(">", StringComparison.Ordinal);
-            if (firstEndBracketPosition >= 0)
-            {
+            if (firstEndBracketPosition >= 0) {
                 htmlContents = htmlContents.Remove(firstEndBracketPosition, 1);
                 htmlContents = htmlContents.Insert(firstEndBracketPosition, ">");
             }
@@ -200,11 +179,9 @@ namespace HtmlMinifier
         /// </summary>
         /// <param name="htmlContents">The html to minify</param>
         /// <returns>A string with all comment lines replaced with text tags</returns>
-        private static string ReplaceTextLine(string htmlContents)
-        {
+        private static string ReplaceTextLine(string htmlContents) {
             var sb = new StringBuilder();
-            foreach (var line in Regex.Split(htmlContents, "\r\n"))
-            {
+            foreach (var line in Regex.Split(htmlContents, "\r\n")) {
                 if (line.Contains("@:"))
                     sb.AppendLine(line.Replace("@:", "<text>") + "</text>");
                 else
@@ -218,14 +195,12 @@ namespace HtmlMinifier
         /// </summary>
         /// <param name="javaScriptComments"></param>
         /// <returns>A string with all JS comments removed</returns>
-        public static string RemoveJavaScriptComments(string javaScriptComments)
-        {
+        public static string RemoveJavaScriptComments(string javaScriptComments) {
             // Remove JavaScript comments
             Regex extractScripts = new Regex(@"<script[^>]*>[\s\S]*?</script>");
 
             // Loop through the script blocks
-            foreach (Match match in extractScripts.Matches(javaScriptComments))
-            {
+            foreach (Match match in extractScripts.Matches(javaScriptComments)) {
                 var scriptBlock = match.Value;
 
                 javaScriptComments = javaScriptComments.Replace(scriptBlock, Regex.Replace(scriptBlock, @"[^:|""|']//(.*?)\r?\n", ""));
@@ -242,16 +217,13 @@ namespace HtmlMinifier
         /// <param name="htmlContents">The minified HTML</param>
         /// <param name="features">The features</param>
         /// <returns>A html string</returns>
-        public static string EnsureMaxLength(string htmlContents, Features features)
-        {
-            if (features.MaxLength > 0)
-            {
+        public static string EnsureMaxLength(string htmlContents, Features features) {
+            if (features.MaxLength > 0) {
                 int htmlLength = htmlContents.Length;
                 int currentMaxLength = features.MaxLength;
                 int position;
 
-                while (htmlLength > currentMaxLength)
-                {
+                while (htmlLength > currentMaxLength) {
                     position = htmlContents.LastIndexOf("><", currentMaxLength);
                     htmlContents = htmlContents.Substring(0, position + 1) + "\r\n" + htmlContents.Substring(position + 1);
                     currentMaxLength += features.MaxLength;

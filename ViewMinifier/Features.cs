@@ -1,35 +1,28 @@
 ﻿using System.Linq;
 
-namespace HtmlMinifier
-{
-    public class Features
-    {
+namespace HtmlMinifier {
+    public class Features {
         /// <summary>
         /// Check the arguments passed in to determine if we should enable or disable any features.
         /// </summary>
         /// <param name="args">The arguments passed in.</param>
-        public Features(string[] args)
-        {
-            if (args.Contains("ignorehtmlcomments"))
-            {
+        public Features(string[] args) {
+            if (args.Contains("ignorehtmlcomments")) {
                 IgnoreHtmlComments = true;
             }
 
-            if (args.Contains("ignorejscomments"))
-            {
+            if (args.Contains("ignorejscomments")) {
                 IgnoreJsComments = true;
             }
 
-            if (args.Contains("ignoreknockoutcomments"))
-            {
+            if (args.Contains("ignoreknockoutcomments")) {
                 IgnoreKnockoutComments = true;
             }
 
             int maxLength = 0;
 
             // This is a check to see if the args contain an optional parameter for the max line length
-            if (args != null && args.Length > 1)
-            {
+            if (args != null && args.Length > 1) {
                 // Try and parse the value sent through
                 int.TryParse(args[1], out maxLength);
             }
